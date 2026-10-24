@@ -1,5 +1,3 @@
-import { realpathSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { commands, findCommand } from './commands/index.ts';
 import { CliError, type Context } from './lib/context.ts';
@@ -97,20 +95,4 @@ Global options:
   -v, --version    Show version
       --verbose    Print debug output
       --no-color   Disable colored output (or set NO_COLOR=1)`;
-}
-
-// Allow `node src/cli.ts ...` during development; the published entry point
-// is bin/clitemplate.js, which imports and calls main().
-function isEntryPoint(): boolean {
-  const script = process.argv[1];
-  if (!script) return false;
-  try {
-    return import.meta.url === pathToFileURL(realpathSync(script)).href;
-  } catch {
-    return false;
-  }
-}
-
-if (isEntryPoint()) {
-  process.exitCode = await main(process.argv.slice(2));
 }

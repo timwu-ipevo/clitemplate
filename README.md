@@ -9,6 +9,7 @@ TypeScript with **zero runtime dependencies**.
 - Per-platform config/data/cache directories (`%APPDATA%`, `~/Library`, XDG)
 - Tests with the built-in `node:test` runner
 - CI on ubuntu/windows/macos × Node 22/24, plus a smoke test of the packed tarball
+- Standalone executables (no Node.js needed) attached to each GitHub release
 
 ## Requirements
 
@@ -24,7 +25,53 @@ npm test                           # run tests
 npm run typecheck                  # type-check src + test
 npm run build                      # compile to dist/
 npm link                           # put `clitemplate` on your PATH
+npm run build:exe                  # standalone executable in dist-exe/
 ```
+
+## Standalone executables
+
+`npm run build:exe` bundles the CLI with esbuild and embeds it in a copy of
+the current `node` binary using Node's
+[Single Executable Applications](https://nodejs.org/api/single-executable-applications.html)
+feature. The result (~90 MB) runs without Node.js installed. Because it is a
+real executable rather than a `.cmd` shim or `#!/usr/bin/env node` script,
+GUI apps that launch programs without a shell can run it too.
+
+There is no cross-compiling: the build produces an executable for the OS and
+CPU it runs on. To test a built executable, run
+`CLI_EXE=dist-exe/clitemplate npm test`.
+
+### Releasing
+
+```sh
+npm version patch          # bumps package.json and creates tag vX.Y.Z
+git push --follow-tags     # triggers .github/workflows/release.yml
+```
+
+The release workflow builds and tests executables for linux-x64, linux-arm64,
+win-x64, macos-arm64 and macos-x64. It then publishes a GitHub release with
+the executables and a `SHA256SUMS.txt` file attached. It fails if the tag
+doesn't match `package.json`'s version.
+
+### Installing a release binary system-wide
+
+Rename the downloaded file to `clitemplate` (`clitemplate.exe` on Windows),
+then put it in a directory that GUI apps search, not just your shell:
+
+- **Windows:** put it in a folder such as `C:\Program Files\clitemplate\` and
+  add that folder to the **system** PATH (System Properties → Environment
+  Variables). Apps that are already running only see the change after a restart.
+- **macOS:** `chmod +x clitemplate && xattr -d com.apple.quarantine clitemplate`,
+  then move it to `/usr/local/bin`. Apps launched from the Dock or Finder don't
+  use your shell's PATH, so configure apps with the full path
+  (`/usr/local/bin/clitemplate`) when they ask for one.
+- **Linux:** `chmod +x clitemplate`, then move it to `/usr/local/bin` (all
+  users) or `~/.local/bin` (per user, picked up by most desktop sessions).
+
+Release binaries aren't code-signed: the Windows binary's original Node.js
+signature is invalidated by the build, and the macOS binary is only ad-hoc
+signed. Expect SmartScreen or Gatekeeper prompts until you sign with your own
+certificate.
 
 ## Usage
 
@@ -47,8 +94,10 @@ Exit codes: `0` success, `1` failure, `2` invalid usage.
 ## Layout
 
 ```
-bin/clitemplate.js     # published entry point (shebang launcher → dist/cli.js)
+bin/clitemplate.js     # npm entry point (shebang launcher → dist/run.js)
+src/run.ts             # process entry: runs main() and sets the exit code
 src/cli.ts             # global flags, dispatch, error handling
+scripts/build-exe.mjs  # standalone executable build
 src/commands/          # one file per command; register in commands/index.ts
 src/lib/               # logger, platform paths, package info, shared types
 test/                  # node:test suites (spawn the real CLI)
@@ -64,7 +113,8 @@ test/                  # node:test suites (spawn the real CLI)
 ## Renaming the CLI
 
 Change `name` and the `bin` key in `package.json`, rename `bin/clitemplate.js`,
-and update the package filename in `.github/workflows/ci.yml`.
+and update the `clitemplate` filenames in `.github/workflows/ci.yml` and
+`release.yml`.
 
 ## Cross-platform notes
 

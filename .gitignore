@@ -6,3 +6,5 @@ coverage/
 .DS_Store
 Thumbs.db
 .env
+dist-exe/
+build/

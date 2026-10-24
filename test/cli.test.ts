@@ -3,11 +3,14 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 
-const cli = fileURLToPath(new URL('../src/cli.ts', import.meta.url));
+// Set CLI_EXE to a standalone executable (npm run build:exe) to test it instead.
+const exe = process.env.CLI_EXE;
+const cli = fileURLToPath(new URL('../src/run.ts', import.meta.url));
 
 /** Runs the CLI in a child process, exactly as a user would. */
 function run(...args: string[]) {
-  const result = spawnSync(process.execPath, [cli, ...args], {
+  const [command, argv] = exe ? [exe, args] : [process.execPath, [cli, ...args]];
+  const result = spawnSync(command, argv, {
     encoding: 'utf8',
     env: { ...process.env, NO_COLOR: '1' },
   });

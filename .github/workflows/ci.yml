@@ -32,3 +32,11 @@ jobs:
           clitemplate --version
           clitemplate greet CI
           clitemplate info
+      # Catch SEA breakage before a release tag does. The release workflow
+      # pins Node 24 for executables, so only test that here.
+      - name: Build and test standalone executable
+        if: matrix.node == 24
+        shell: bash
+        run: |
+          npm run build:exe
+          CLI_EXE="$PWD/dist-exe/clitemplate$([ "$RUNNER_OS" = Windows ] && echo .exe)" npm test
