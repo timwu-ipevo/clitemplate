@@ -1,0 +1,6 @@
+# Normalize to LF everywhere. A CRLF shebang line ("node\r") breaks the CLI
+# on macOS/Linux, so this matters even if you only develop on Windows.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
