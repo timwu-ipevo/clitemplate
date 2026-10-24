@@ -12,7 +12,7 @@ TypeScript with **zero runtime dependencies**.
 
 ## Requirements
 
-- **Running** the built CLI: Node.js >= 20
+- **Running** the built CLI: Node.js >= 22
 - **Developing**: Node.js >= 22.18 (source `.ts` files run directly via Node's native type stripping)
 
 ## Getting started

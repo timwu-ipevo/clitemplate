@@ -14,8 +14,8 @@ jobs:
         node: [22, 24]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -32,18 +32,3 @@ jobs:
           clitemplate --version
           clitemplate greet CI
           clitemplate info
-
-  runtime-node20:
-    # Built output must still run on the minimum supported runtime (engines).
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci && npm run build
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: node bin/clitemplate.js greet --shout && node bin/clitemplate.js info
